@@ -10,5 +10,11 @@
         "nome": "Joao",
         "email": "joao@gmail.c",
         "senha": "$2y$10$8TPY6RbXkpHhktvgbxeuPunUEVIYESewVxi75.w.GJnrYEEhdrBWi"
+    },
+    {
+        "id": 3,
+        "nome": "Gabriel",
+        "email": "gabrieloreidotruco@gmail.com",
+        "senha": "$2y$10$pJEEuc2VvFJ7tqOd4A5pVOsdk3YEfJyd.lDNSO0ewqY2QnrbNPxAu"
     }
 ]

@@ -45,7 +45,7 @@ if ($metodo == 'POST'){
         $nome  = $dados['nome'];
         $email = $dados['email'];
         $senha = $dados['senha'];
-
+        $confirmarSenha = $dados['confirmarSenha'];
 
         //Verifica se tem algum campo vazio
         if (empty($nome) || empty($email) || empty($senha)) {
@@ -56,6 +56,11 @@ if ($metodo == 'POST'){
         //Verifica o formato do email
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             echo json_encode(['erro' => 'Formato de email inválido.']);
+            exit;
+        }
+
+        if ($senha !== $confirmarSenha) {
+            echo json_encode(['erro' => 'As senhas não coincidem.']);
             exit;
         }
 

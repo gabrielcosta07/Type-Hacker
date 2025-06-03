@@ -50,8 +50,8 @@ if ($metodo == 'POST') {
         $confirmarSenha = $dados['confirmarSenha'];
 
         //Verifica se tem algum campo vazio
-        if (empty($nome) || empty($email) || empty($senha)) {
-            echo json_encode(['erro' => 'Nome, email e senha são obrigatórios.']);
+        if (empty($nome) || empty($email) || empty($senha) || empty($confirmarSenha)) {
+            echo json_encode(['erro' => 'Todos os campos são obrigatórios.']);
             exit;
         }
 

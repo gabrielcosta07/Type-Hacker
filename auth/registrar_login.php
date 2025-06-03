@@ -1,7 +1,7 @@
-<?php 
+<?php
 //Faz conversar com o front
 header("Access-Control-Allow-Origin: http://localhost:5173");
-header("Access-Control-Allow-Methods: POST, PTIONS");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 
 //gerência e responde requisições
@@ -17,15 +17,17 @@ header("Content-Type: application/json; charset=UTF-8");
 $arquivo = 'usuarios.json';
 
 //Função pra ler os usuários
-function lerUsuarios($arquivo){
-    if(!file_exists($arquivo)){
+function lerUsuarios($arquivo)
+{
+    if (!file_exists($arquivo)) {
         file_put_contents($arquivo, json_encode([]));
-    } 
+    }
     return json_decode(file_get_contents($arquivo), true);
 }
 
 //Função para salvar usuários
-function salvarUsuarios($arquivo, $usuarios){
+function salvarUsuarios($arquivo, $usuarios)
+{
     file_put_contents($arquivo, json_encode($usuarios, JSON_PRETTY_PRINT));
 }
 
@@ -34,15 +36,15 @@ $metodo = $_SERVER['REQUEST_METHOD'];
 //Recebe a ordem do React
 $dados = json_decode(file_get_contents('php://input'), true);
 
-if ($metodo == 'POST'){
+if ($metodo == 'POST') {
     $acao = $dados['acao'];
 
     $usuarios = lerUsuarios($arquivo);
 
     //Se for registrar recebe os dados e faz a verificação deles
-    if($acao == 'registrar'){
+    if ($acao == 'registrar') {
 
-        $nome  = $dados['nome'];
+        $nome = $dados['nome'];
         $email = $dados['email'];
         $senha = $dados['senha'];
         $confirmarSenha = $dados['confirmarSenha'];
@@ -65,8 +67,8 @@ if ($metodo == 'POST'){
         }
 
         //Verifica se o usuario ja existe 
-        foreach($usuarios as $usuario){
-            if($usuario['email'] == $email){
+        foreach ($usuarios as $usuario) {
+            if ($usuario['email'] == $email) {
                 echo json_encode(['erro' => 'Usuário ja existe']);
                 exit;
             }
@@ -74,7 +76,7 @@ if ($metodo == 'POST'){
 
         //Cria um novo usário com ID
         $novoUsuario = [
-            'id' => count($usuarios) +1,
+            'id' => count($usuarios) + 1,
             'nome' => $nome,
             'email' => $email,
             'senha' => password_hash($senha, PASSWORD_DEFAULT)
@@ -85,21 +87,21 @@ if ($metodo == 'POST'){
 
         echo json_encode(['mensagem' => 'Usuário registrado com sucesso']);
 
-    } else if ($acao == 'login'){
+    } else if ($acao == 'login') {
 
         $email = $dados['email'];
         $senha = $dados['senha'];
 
         $usuarioEncontrado = false;
 
-        foreach($usuarios as $usuario){
-            if($usuario['email'] == $email && password_verify($senha, $usuario['senha'])){
-                $usuarioEncontrado = true; 
+        foreach ($usuarios as $usuario) {
+            if ($usuario['email'] == $email && password_verify($senha, $usuario['senha'])) {
+                $usuarioEncontrado = true;
                 break;
             }
         }
 
-        if($usuarioEncontrado){
+        if ($usuarioEncontrado) {
             echo json_encode(['success' => true, 'mensagem' => 'Login bem-sucedido']);
         } else {
             echo json_encode(['erro' => 'Email ou senha incorretos']);

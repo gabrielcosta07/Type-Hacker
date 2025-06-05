@@ -2,7 +2,7 @@
 // Inicia o buffer para evitar qualquer output antes do JSON
 ob_start();
 
-include "../auth/conexao.php";
+include "../database/conection.php";
 include "../includes/cors.php";
 
 // Lê o JSON recebido

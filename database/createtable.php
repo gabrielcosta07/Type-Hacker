@@ -30,7 +30,6 @@ CREATE TABLE IF NOT EXISTS membros_liga (
 CREATE TABLE IF NOT EXISTS partidas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     membro_liga_id INT NOT NULL,
-    fase_id INT NOT NULL,
     pontos INT NOT NULL,
     erros INT NOT NULL,
     tempo_jogado INT NOT NULL,

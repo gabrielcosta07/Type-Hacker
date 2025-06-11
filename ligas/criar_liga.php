@@ -1,35 +1,60 @@
 <?php
-include('../includes/cors.php');
-include('../includes/funcoes.php');
+require '../includes/cors.php';
+session_start();
+require '../database/conection.php';
+header('Content-Type: application/json');
 
-$arquivoLigas = 'ligas.json';
 
-$dados = json_decode(file_get_contents("php://input"), true);
-$nome = $dados['nome'] ?? ''; // nome dentro dos [] vai mudar dependendo dos nomes das variaveis no front
-$palavra_chave = $dados['palavra_chave'] ?? '';
-$criador_id = $dados['criador_id'] ?? null;
-
-if (!$nome || !$palavra_chave || !$criador_id) {
-    echo json_encode(['erro' => 'Campos obrigatórios faltando']);
+$userId = $_SESSION['user_id'] ?? null;
+if (!$userId) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Usuário não autenticado']);
     exit;
 }
 
-$ligas = lerJson($arquivoLigas);
 
-$novaLiga = [
-    'id' => count($ligas) + 1,
-    'nome' => $nome,
-    'palavra_chave' => $palavra_chave,
-    'criador_id' => $criador_id,
-    'data_criacao' => date('Y-m-d H:i:s')
-];
+$data = json_decode(file_get_contents('php://input'), true);
+$nome = trim($data['nome'] ?? '');
+$palavra = trim($data['palavra_chave'] ?? '');
 
-$ligas[] = $novaLiga;
-salvarJson($arquivoLigas, $ligas);
 
-if ($novaLiga) {
-    echo json_encode(['success' => true, 'mensagem' => 'Liga criada com sucesso']);
-} else {
-    echo json_encode(['erro' => 'Erro ao criar a liga']);
+if (!$nome || !$palavra) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Campos obrigatórios']);
+    exit;
 }
-exit;
+
+try {
+
+    $stmt = $conexao->prepare("
+        SELECT ligas.id 
+        FROM ligas 
+        INNER JOIN membros_liga ON membros_liga.liga_id = ligas.id 
+        WHERE membros_liga.usuario_id = ? AND ligas.nome = ?
+    ");
+    $stmt->bind_param("is", $userId, $nome);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->fetch_assoc()) {
+        http_response_code(409);
+        echo json_encode(['error' => 'Você já participa de uma liga com esse nome.']);
+        exit;
+    }
+
+    $stmt = $conexao->prepare("INSERT INTO ligas (nome, palavra_chave, criador_id) VALUES (?, ?, ?)");
+    $stmt->bind_param("ssi", $nome, $palavra, $userId);
+    $stmt->execute();
+
+    $ligaId = $conexao->insert_id;
+
+    $stmt = $conexao->prepare("INSERT INTO membros_liga (usuario_id, liga_id) VALUES (?, ?)");
+    $stmt->bind_param("ii", $userId, $ligaId);
+    $stmt->execute();
+
+    echo json_encode(['success' => true, 'liga_id' => $ligaId]);
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(['error' => 'Erro ao criar liga: ' . $e->getMessage()]);
+}
+?>

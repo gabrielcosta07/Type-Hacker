@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS partidas (
     erros INT NOT NULL,
     tempo_jogado INT NOT NULL,
     data_partida DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (membro_liga_id) REFERENCES membros_liga(id),
+    FOREIGN KEY (membro_liga_id) REFERENCES membros_liga(id)
 );
 ";
 

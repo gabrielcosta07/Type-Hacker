@@ -1,17 +1,13 @@
 <?php
 include "../includes/cors.php";
-
 session_start();
-
 include "../database/conection.php";
 
 header('Content-Type: application/json');
 
 function fetch_query($conexao, $sql, $params = [], $types = "") {
     $stmt = $conexao->prepare($sql);
-    if (!$stmt) {
-        return [];
-    }
+    if (!$stmt) { return []; }
     if (!empty($params)) {
         $stmt->bind_param($types, ...$params);
     }
@@ -22,59 +18,31 @@ function fetch_query($conexao, $sql, $params = [], $types = "") {
     return $data;
 }
 
-$sql_geral = "
-    SELECT u.id, u.nome, MAX(p.pontos) AS pontuacao
-    FROM partidas p
-    JOIN usuarios u ON p.usuario_id = u.id
-    GROUP BY u.id, u.nome
-    ORDER BY pontuacao DESC
-    LIMIT 10
-";
+$sql_geral = "SELECT u.id, u.nome, MAX(p.pontos) AS pontuacao FROM partidas p JOIN usuarios u ON p.usuario_id = u.id GROUP BY u.id, u.nome ORDER BY pontuacao DESC LIMIT 10";
 $ranking_geral = fetch_query($conexao, $sql_geral);
 
-$sql_semanal = "
-    SELECT u.id, u.nome, MAX(p.pontos) AS pontuacao
-    FROM partidas p
-    JOIN usuarios u ON p.usuario_id = u.id
-    WHERE p.data_partida >= CURDATE() - INTERVAL 7 DAY
-    GROUP BY u.id, u.nome
-    ORDER BY pontuacao DESC
-    LIMIT 10
-";
-$ranking_semanal = fetch_query($conexao, $sql_semanal);
+$sql_semanal_global = "SELECT u.id, u.nome, MAX(p.pontos) AS pontuacao FROM partidas p JOIN usuarios u ON p.usuario_id = u.id WHERE p.data_partida >= CURDATE() - INTERVAL 7 DAY GROUP BY u.id, u.nome ORDER BY pontuacao DESC LIMIT 10";
+$ranking_semanal = fetch_query($conexao, $sql_semanal_global);
 
-$sql_liga = "
-    SELECT
-        l.id,
-        l.nome,
-        SUM(UserMaxScores.max_pontos) as pontuacao
-    FROM
-        ligas l
-    JOIN
-        (
-            SELECT
-                ml.liga_id,
-                MAX(p.pontos) as max_pontos
-            FROM partidas p
-            JOIN membros_liga ml ON p.membro_liga_id = ml.id
-            WHERE p.membro_liga_id IS NOT NULL
-            GROUP BY ml.liga_id, p.usuario_id
-        ) AS UserMaxScores ON l.id = UserMaxScores.liga_id
-    GROUP BY
-        l.id, l.nome
-    ORDER BY
-        pontuacao DESC
-    LIMIT 10
-";
-$ranking_liga = fetch_query($conexao, $sql_liga);
+$user_leagues = [];
+if (isset($_SESSION['user_id'])) {
+    $user_id = $_SESSION['user_id'];
+    $sql_user_leagues = "
+        SELECT l.id, l.nome
+        FROM ligas l
+        JOIN membros_liga ml ON l.id = ml.liga_id
+        WHERE ml.usuario_id = ?
+        ORDER BY l.nome
+    ";
+    $user_leagues = fetch_query($conexao, $sql_user_leagues, [$user_id], "i");
+}
 
 $resposta = [
     'geral' => $ranking_geral,
     'semanal' => $ranking_semanal,
-    'liga' => $ranking_liga
+    'liga' => $user_leagues 
 ];
 
 echo json_encode($resposta);
-
 $conexao->close();
 ?>

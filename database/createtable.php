@@ -11,7 +11,7 @@ $sql = "CREATE TABLE IF NOT EXISTS usuarios (
 CREATE TABLE IF NOT EXISTS ligas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
-    palavra_chave VARCHAR(50) NOT NULL,
+    palavra_chave_hash VARCHAR(50) NOT NULL,
     criador_id INT NOT NULL,
     data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (criador_id) REFERENCES usuarios(id)

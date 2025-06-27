@@ -1,60 +1,58 @@
 <?php
+
+
 require '../includes/cors.php';
 session_start();
 require '../database/conection.php';
-header('Content-Type: application/json');
 
+header('Content-Type: application/json');
 
 $userId = $_SESSION['user_id'] ?? null;
 if (!$userId) {
     http_response_code(401);
-    echo json_encode(['error' => 'Usuário não autenticado']);
+    echo json_encode(['success' => false, 'error' => 'Usuário não autenticado']);
     exit;
 }
-
 
 $data = json_decode(file_get_contents('php://input'), true);
 $nome = trim($data['nome'] ?? '');
-$palavra = trim($data['palavra_chave'] ?? '');
+$palavra_chave = trim($data['palavra_chave'] ?? '');
 
-
-if (!$nome || !$palavra) {
+if (empty($nome) || empty($palavra_chave)) {
     http_response_code(400);
-    echo json_encode(['error' => 'Campos obrigatórios']);
+    echo json_encode(['success' => false, 'error' => 'Nome e palavra-chave são obrigatórios.']);
     exit;
 }
 
+
+$conexao->begin_transaction();
+
 try {
 
-    $stmt = $conexao->prepare("
-        SELECT ligas.id 
-        FROM ligas 
-        INNER JOIN membros_liga ON membros_liga.liga_id = ligas.id 
-        WHERE membros_liga.usuario_id = ? AND ligas.nome = ?
-    ");
-    $stmt->bind_param("is", $userId, $nome);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    $palavra_chave_hash = password_hash($palavra_chave, PASSWORD_DEFAULT);
 
-    if ($result->fetch_assoc()) {
-        http_response_code(409);
-        echo json_encode(['error' => 'Você já participa de uma liga com esse nome.']);
-        exit;
-    }
 
-    $stmt = $conexao->prepare("INSERT INTO ligas (nome, palavra_chave, criador_id) VALUES (?, ?, ?)");
-    $stmt->bind_param("ssi", $nome, $palavra, $userId);
+    $stmt = $conexao->prepare("INSERT INTO ligas (nome, palavra_chave_hash, criador_id) VALUES (?, ?, ?)");
+    $stmt->bind_param("ssi", $nome, $palavra_chave_hash, $userId);
     $stmt->execute();
 
     $ligaId = $conexao->insert_id;
 
-    $stmt = $conexao->prepare("INSERT INTO membros_liga (usuario_id, liga_id) VALUES (?, ?)");
-    $stmt->bind_param("ii", $userId, $ligaId);
-    $stmt->execute();
+    $stmt_membro = $conexao->prepare("INSERT INTO membros_liga (usuario_id, liga_id) VALUES (?, ?)");
+    $stmt_membro->bind_param("ii", $userId, $ligaId);
+    $stmt_membro->execute();
+
+    $conexao->commit();
 
     echo json_encode(['success' => true, 'liga_id' => $ligaId]);
+
 } catch (Exception $e) {
+    $conexao->rollback();
     http_response_code(500);
-    echo json_encode(['error' => 'Erro ao criar liga: ' . $e->getMessage()]);
+    error_log("Erro ao criar liga: " . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'Erro no servidor ao criar a liga.']);
 }
+
+$stmt->close();
+$conexao->close();
 ?>

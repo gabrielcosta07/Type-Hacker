@@ -27,13 +27,15 @@ CREATE TABLE IF NOT EXISTS membros_liga (
     UNIQUE(usuario_id, liga_id)
 );
 
-CREATE TABLE IF NOT EXISTS partidas (
+CREATE TABLE partidas (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    membro_liga_id INT NOT NULL,
+    usuario_id INT NOT NULL,
+    membro_liga_id INT NULL,
     pontos INT NOT NULL,
     erros INT NOT NULL,
     tempo_jogado INT NOT NULL,
     data_partida DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
     FOREIGN KEY (membro_liga_id) REFERENCES membros_liga(id)
 );
 ";

@@ -20,15 +20,15 @@ Este projeto foi desenvolvido por:
 ## 🏗️ Estrutura do Projeto
 O projeto Type Hacker é conscientemente dividido em duas partes principais para melhor organização e desenvolvimento:
 
-### ⚙️ Back-end (Este Repositório/Diretório)
+### ⚙️ Back-end (Este Repositório)
 - **Responsabilidades:** Implementação da API REST, lógica de autenticação, validação de dados do servidor, processamento de pontuações, gerenciamento de ligas, interação e persistência de dados com o banco de dados MySQL.
 - **Tecnologias Principais:** PHP, MySQL, Servidor Apache (via XAMPP).
 
-### 🖥️ Front-end (Diretório/Repositório Separado)
+
+### 🖥️ Front-end (Repositório Separado)
 - **Responsabilidades:** Interface do usuário (UI), experiência do usuário (UX), lógica de apresentação do jogo, e consumo dos endpoints desta API Back-end para funcionalidades dinâmicas.
 - **Tecnologias Principais:** React, Vite, CSS.
-- *(Se o frontend estiver em um repositório público, adicione o link aqui: [Link para o Repositório do Front-end])*
-
+- [👉 Repositório do Front-end](https://github.com/gabrielcosta07/Trabalho-WEB1--JOGO-Front)
 ---
 
 ## 🛠️ Tecnologias Utilizadas

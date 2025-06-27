@@ -1,11 +1,11 @@
 <?php
 
+
 require '../includes/cors.php';
 session_start();
 require '../database/conection.php';
 
 header('Content-Type: application/json');
-
 
 $usuario_id = $_SESSION['user_id'] ?? null;
 if (!$usuario_id) {
@@ -27,7 +27,6 @@ if (empty($liga_id)) {
 $conexao->begin_transaction();
 
 try {
-
     $stmt_check = $conexao->prepare("SELECT criador_id FROM ligas WHERE id = ?");
     $stmt_check->bind_param("i", $liga_id);
     $stmt_check->execute();
@@ -35,12 +34,18 @@ try {
     $stmt_check->close();
 
     if (!$liga || $liga['criador_id'] != $usuario_id) {
-
         http_response_code(403);
         echo json_encode(['success' => false, 'error' => 'Você não tem permissão para excluir esta liga.']);
         $conexao->rollback();
         exit;
     }
+
+    $stmt_delete_partidas = $conexao->prepare(
+        "DELETE FROM partidas WHERE membro_liga_id IN (SELECT id FROM membros_liga WHERE liga_id = ?)"
+    );
+    $stmt_delete_partidas->bind_param("i", $liga_id);
+    $stmt_delete_partidas->execute();
+    $stmt_delete_partidas->close();
 
     $stmt_delete_membros = $conexao->prepare("DELETE FROM membros_liga WHERE liga_id = ?");
     $stmt_delete_membros->bind_param("i", $liga_id);

@@ -11,14 +11,32 @@ $data = json_decode(file_get_contents('php://input'), true);
 $nome = $data['nome'] ?? '';
 $email = $data['email'] ?? '';
 $senha = $data['senha'] ?? '';
+$confirmarSenha = $data['confirmarSenha'] ?? '';
 
+//Validação dos campos
 if (!$nome || !$email || !$senha) {
     ob_end_clean();
     
     echo json_encode(["success" => false, "message" => "Preencha todos os campos."]);
     exit;
 }
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    ob_end_clean();
+    echo json_encode(["success" => false, "message" => "E-mail inválido."]);
+    exit;
+}
 
+if (!preg_match("/^[a-zA-ZÀ-ÿ\s]+$/", $nome)) {
+    ob_end_clean();
+    echo json_encode(["success" => false, "message" => "O nome deve conter apenas letras e espaços."]);
+    exit;
+}
+
+if($senha !== $confirmarSenha) {
+    ob_end_clean();
+    echo json_encode(["success" => false, "message" => "As senhas não coincidem."]);
+    exit;
+}
 // Prepara consulta para verificar email 
 $consulta = $conexao->prepare("SELECT id FROM usuarios WHERE email = ?");
 if (!$consulta) {

@@ -11,9 +11,16 @@ $data = json_decode(file_get_contents('php://input'), true);
 $email = $data['email'] ?? '';
 $senha = $data['senha'] ?? '';
 
+//Validação dos campos
 if (!$email || !$senha) {
     ob_end_clean();
     echo json_encode(["success" => false, "message" => "Preencha todos os campos."]);
+    exit;
+}
+
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    ob_end_clean();
+    echo json_encode(["success" => false, "message" => "E-mail inválido."]);
     exit;
 }
 

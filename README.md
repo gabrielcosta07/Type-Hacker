@@ -41,4 +41,3 @@ O projeto Type Hacker é conscientemente dividido em duas partes principais para
 | Formato de Dados| JSON              | Padrão para troca de informações entre Back-end e Front-end.         |
 
 ---
-

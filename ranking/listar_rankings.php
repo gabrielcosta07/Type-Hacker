@@ -44,31 +44,26 @@ $sql_semanal = "
 $ranking_semanal = fetch_query($conexao, $sql_semanal);
 
 $sql_liga = "
-    WITH UserMaxScores AS (
-        SELECT
-            ml.liga_id,
-            p.usuario_id,
-            MAX(p.pontos) AS max_pontos
-        FROM partidas p
-        JOIN membros_liga ml ON p.membro_liga_id = ml.id
-        GROUP BY ml.liga_id, p.usuario_id
-    ),
-    RankedScores AS (
-        SELECT
-            liga_id,
-            max_pontos,
-            ROW_NUMBER() OVER(PARTITION BY liga_id ORDER BY max_pontos DESC) as rn
-        FROM UserMaxScores
-    )
     SELECT
         l.id,
         l.nome,
-        SUM(rs.max_pontos) AS pontuacao
-    FROM RankedScores rs
-    JOIN ligas l ON rs.liga_id = l.id
-    WHERE rs.rn <= 5
-    GROUP BY l.id, l.nome
-    ORDER BY pontuacao DESC
+        SUM(UserMaxScores.max_pontos) as pontuacao
+    FROM
+        ligas l
+    JOIN
+        (
+            SELECT
+                ml.liga_id,
+                MAX(p.pontos) as max_pontos
+            FROM partidas p
+            JOIN membros_liga ml ON p.membro_liga_id = ml.id
+            WHERE p.membro_liga_id IS NOT NULL
+            GROUP BY ml.liga_id, p.usuario_id
+        ) AS UserMaxScores ON l.id = UserMaxScores.liga_id
+    GROUP BY
+        l.id, l.nome
+    ORDER BY
+        pontuacao DESC
     LIMIT 10
 ";
 $ranking_liga = fetch_query($conexao, $sql_liga);

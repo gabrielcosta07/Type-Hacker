@@ -42,22 +42,3 @@ O projeto Type Hacker é conscientemente dividido em duas partes principais para
 
 ---
 
-## 📊 Funcionalidades da API
-Este Back-end expõe funcionalidades através de endpoints REST, incluindo:
-
-- 🔐 **Autenticação de Usuários:**
-    - Registro de novos usuários (com hash de senha).
-    - Login de usuários existentes (verificando credenciais e hash de senha).
-    - (Opcional) Logout e gerenciamento de sessão/token.
-- 🎮 **Gerenciamento de Partidas e Pontuações:**
-    - Submissão de resultados de partidas concluídas.
-    - Cálculo e armazenamento de pontuações.
-- 🏆 **Sistema de Ranking:**
-    - Recuperação de ranking global de jogadores.
-    - Recuperação de rankings específicos por ligas.
-- 🧑‍🤝‍🧑 **Sistema de Ligas:**
-    - Criação de novas ligas (com código de acesso).
-    - Permissão para jogadores entrarem em ligas existentes usando um código.
-    - Listagem de jogadores em uma liga.
-- 📈 **Histórico de Partidas:**
-    - Recuperação do histórico de partidas de um jogador específico.

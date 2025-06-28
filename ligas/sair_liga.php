@@ -1,5 +1,4 @@
 <?php
-
 require '../includes/cors.php';
 session_start();
 require '../database/conection.php';
@@ -22,6 +21,8 @@ if (empty($liga_id)) {
     exit;
 }
 
+$conexao->begin_transaction();
+
 try {
     $stmt_check = $conexao->prepare("SELECT criador_id FROM ligas WHERE id = ?");
     $stmt_check->bind_param("i", $liga_id);
@@ -32,21 +33,41 @@ try {
     if ($liga && $liga['criador_id'] == $usuario_id) {
         http_response_code(403);
         echo json_encode(['success' => false, 'error' => 'O criador não pode sair da própria liga.']);
+        $conexao->rollback();
         exit;
     }
-    $stmt_delete = $conexao->prepare("DELETE FROM membros_liga WHERE liga_id = ? AND usuario_id = ?");
-    $stmt_delete->bind_param("ii", $liga_id, $usuario_id);
-    $stmt_delete->execute();
 
-    if ($stmt_delete->affected_rows > 0) {
+    $stmt_get_member_id = $conexao->prepare("SELECT id FROM membros_liga WHERE usuario_id = ? AND liga_id = ?");
+    $stmt_get_member_id->bind_param("ii", $usuario_id, $liga_id);
+    $stmt_get_member_id->execute();
+    $membro = $stmt_get_member_id->get_result()->fetch_assoc();
+    $stmt_get_member_id->close();
+
+    if ($membro) {
+        $membro_liga_id = $membro['id'];
+
+        $stmt_delete_partidas = $conexao->prepare("DELETE FROM partidas WHERE membro_liga_id = ?");
+        $stmt_delete_partidas->bind_param("i", $membro_liga_id);
+        $stmt_delete_partidas->execute();
+        $stmt_delete_partidas->close();
+    }
+
+    $stmt_delete_membro = $conexao->prepare("DELETE FROM membros_liga WHERE liga_id = ? AND usuario_id = ?");
+    $stmt_delete_membro->bind_param("ii", $liga_id, $usuario_id);
+    $stmt_delete_membro->execute();
+
+    if ($stmt_delete_membro->affected_rows > 0) {
+        $conexao->commit();
         echo json_encode(['success' => true]);
     } else {
+        $conexao->rollback();
         http_response_code(404);
         echo json_encode(['success' => false, 'error' => 'Usuário não é membro desta liga.']);
     }
-    $stmt_delete->close();
+    $stmt_delete_membro->close();
 
 } catch (Exception $e) {
+    $conexao->rollback();
     http_response_code(500);
     error_log("Erro ao sair da liga: " . $e->getMessage());
     echo json_encode(['success' => false, 'error' => 'Erro no servidor ao sair da liga.']);
